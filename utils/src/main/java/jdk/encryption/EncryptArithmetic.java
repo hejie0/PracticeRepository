@@ -1,4 +1,4 @@
-package encryption;
+package jdk.encryption;
 
 public interface EncryptArithmetic {
 
