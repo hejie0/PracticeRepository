@@ -1,6 +1,6 @@
 package jdk.encryption.asymmetric;
 
-import jdk.Base64Util;
+import jdk.encryption.symmetry.Base64Util;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 

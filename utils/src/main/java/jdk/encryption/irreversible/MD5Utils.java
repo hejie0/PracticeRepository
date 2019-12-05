@@ -1,4 +1,4 @@
-package jdk;
+package jdk.encryption.irreversible;
 
 import jdk.encryption.BytesToHex;
 

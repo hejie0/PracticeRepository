@@ -1,4 +1,4 @@
-package jdk;
+package jdk.encryption.symmetry;
 
 import java.util.Base64;
 
