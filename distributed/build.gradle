@@ -1,0 +1,98 @@
+group 'distributed'
+version='1.0'
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+    compileJava.options.encoding = 'UTF-8'
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+    }
+
+    task"create-dirs" << {
+        sourceSets*.java.srcDirs*.each {
+            it.mkdirs()
+        }
+        sourceSets*.resources.srcDirs*.each{
+            it.mkdirs()
+        }
+    }
+
+    repositories {
+        //maven {url "http://maven.oschina.net/content/groups/public"}
+        maven {url "http://maven.aliyun.com/nexus/content/groups/public/"}
+        jcenter()
+        //mavenCentral()
+    }
+
+    dependencies {
+        testCompile group: 'junit', name: 'junit', version: '4.12'
+    }
+}
+
+project(':zookeeper') {
+    dependencies {
+        compile group: 'com.101tec', name: 'zkclient', version: '0.11'
+        compile group: 'org.apache.curator', name: 'curator-recipes', version: '2.12.0'
+    }
+}
+
+project(':rmi'){
+    dependencies {
+        compile project (':zookeeper')
+    }
+}
+
+project(':dubbo') {
+    project(':dubbo:server-api') {
+
+    }
+
+    project(':dubbo:server-provider') {
+        dependencies {
+            compile project(':dubbo:server-api')
+            compile group: 'com.alibaba', name: 'dubbo', version: '2.5.3'
+            compile group: 'com.101tec', name: 'zkclient', version: '0.11'
+
+            compile group: 'com.caucho', name: 'hessian', version: '4.0.38'
+            compile group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
+            compile group: 'org.mortbay.jetty', name: 'jetty', version: '6.1.26'
+        }
+    }
+
+    project(':dubbo:client') {
+        dependencies{
+            compile project(':dubbo:server-api')
+            compile group: 'com.alibaba', name: 'dubbo', version: '2.5.3'
+            compile group: 'com.101tec', name: 'zkclient', version: '0.11'
+
+            compile group: 'com.caucho', name: 'hessian', version: '4.0.38'
+            compile group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
+            compile group: 'org.mortbay.jetty', name: 'jetty', version: '6.1.26'
+        }
+    }
+}
+
+project(':activemq') {
+    project(':activemq:activemq-producer') {
+        dependencies {
+            compile group: 'org.apache.activemq', name: 'activemq-all', version: '5.15.0'
+        }
+    }
+
+    project(':activemq:activemq-receiver') {
+        dependencies {
+            compile group: 'org.apache.activemq', name: 'activemq-all', version: '5.15.0'
+        }
+    }
+}
+
+project(':netty') {
+    dependencies {
+        compile group: 'junit', name: 'junit', version: '4.12'
+        compile group: 'io.netty', name: 'netty-all', version: '4.1.32.Final'
+    }
+}

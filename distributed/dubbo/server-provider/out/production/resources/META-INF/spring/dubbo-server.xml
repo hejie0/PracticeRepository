@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://code.alibabatech.com/schema/dubbo
+	http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <!-- provider's application name, used for tracing dependency relationship -->
+    <dubbo:application name="dubbo-server"/>
+
+    <!-- use zookeeper registry center to export service -->
+    <dubbo:registry id="zkCluster" protocol="zookeeper"
+                    address="192.168.50.144:2181, 192.168.50.144:2182, 192.168.50.144:2183"/>
+
+    <!-- use dubbo protocol to export service on port 20880 -->
+    <dubbo:protocol name="dubbo" port="20880"/>
+    <dubbo:protocol name="hessian" port="8888"/>
+
+    <!-- declare the service interface to be exported -->
+    <dubbo:service interface="demo.IHelloService" ref="helloService" protocol="dubbo,hessian" registry="zkCluster" version="1.0.0"/>
+    <dubbo:service interface="demo.IHelloService" ref="helloService2" protocol="dubbo,hessian" registry="zkCluster" version="1.0.1"/>
+    <dubbo:service interface="demo.IUserService" ref="userService" protocol="dubbo,hessian" registry="zkCluster"/>
+
+    <!-- service implementation, as same as regular local bean -->
+    <bean id="helloService" class="demo.HelloServiceImpl"/>
+    <bean id="helloService2" class="demo.HelloServiceImpl2"/>
+    <bean id="userService" class="demo.UserServiceImpl"/>
+</beans>

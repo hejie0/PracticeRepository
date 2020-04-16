@@ -1,0 +1,32 @@
+主动接收队列消息 JMSQueueConsumer，循环监听队列消息 JMSQueueListenerConsumer
+topic实现：接收离线消息 JMSPersistentTopicListenerConsumer
+queue和topic的区别：
+        1、queue类型 多个consumer只能有1个接收，topic类型 多个consumer可以全部接收
+        2、queue类型 consumer先|后订阅都能接收，topic类型 必须在发布消息前订阅 才能接收
+
+设置为持久化      MessageProducer.setDeliveryMode(DeliveryMode.PERSISTENT)
+5种消息体         TextMessage、BytesMessage、ObjectMessage、MapMessage、StreamMessage
+设置消息头        message.setJMS...()
+设置消息属性      message.set...Property()
+
+事务 createSession(Boolean.TRUE, Session.AUTO_ACKNOWLEDGE)
+      true表示启用事务
+      auto_acknowledge表示自动提交
+      false && auto_acknowledge 不启用事务 自动提交
+ producer端
+      session.commit 提交message到activemq上
+      session.rollback 回滚还没有提交到activemq上的message
+ consumer端
+      session.commit 确认activemq上的message已被消费，如果没有commit就会一直被重复消费
+      session.rollback 回滚还没有（提交/确认）到activemq上的message
+
+1、消息同步发送和异步发送是针对broker而言
+默认情况，非持久化消息是异步发送
+非持久化消息 && 在非事务模式下是同步发送
+在开启事务的情况下，消息都是异步发送
+设置异步发送：
+        1、tcp://192.168.50.144:61616?jms.userAsynSend=true
+        2、ActiveMQConnectionFactory.setUseAsyncSend(true)
+
+jms.producerWindowSize=500
+

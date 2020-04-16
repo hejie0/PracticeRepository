@@ -1,0 +1,97 @@
+dubbo整体架构：https://blog.csdn.net/piqianming/article/details/88575876
+dubbo原理 源码分析：https://www.cnblogs.com/langtutengyixiao/p/9916235.html
+SPI机制：https://www.cnblogs.com/GrimMjx/p/10970643.html
+服务发布：https://blog.csdn.net/l6108003/article/details/100085955
+dubbo使用：https://dubbo.gitbooks.io/dubbo-user-book/content/preface/architecture.html
+           http://dubbo.apache.org/zh-cn/docs/dev/impls/protocol.html
+
+
+ServiceConfig类
+          private static final Protocol protocol = ExtensionLoader
+               .getExtensionLoader(Protocol.class)
+               .getAdaptiveExtension();  源码切入点
+
+          com.alibaba.dubbo.common.extension
+               factory:
+                   AdaptiveExtensionFactory
+                   SpiExtensionFactory
+                   com.alibaba.dubbo.config.spring.extension.SpringExtensionFactory
+               @SPI
+               @Adaptive
+               @Activate
+
+          getAdaptiveExtension -> createAdaptiveExtension -> getAdaptiveExtensionClass
+                       getExtensionClasses
+                           loadExtensionClasses
+                               loadFile
+
+                       createAdaptiveExtensionClass
+
+服务供应者
+DubboNamespaceHandler -> ServiceBean.afterPropertiesSet 或 onApplicationEvent ->
+ServiceConfig.export -> doExport -> doExportUrls -> doExportUrlsFor1Protocol ->
+
+proxyFactory.getInvoker -> ProxyFactory$Adpative.getInvoker -> JavassistProxyFactory.getInvoker
+         Wrapper.getWrapper -> makeWrapper
+               return new AbstractProxyInvoker<T>(proxy, type, url)
+
+exportLocal(本地发布) || protocol.export(远程发布) -> Protocol$Adpative.export ->
+         RegistryProtocol.export ->
+               doLocalExport -> ProtocolFilterWrapper.export(buildInvokerChain绑定Filter) ->
+               ProtocolListenerWrapper.export -> DubboProtocol(自己定义的协议，默认是dubbo).export ->
+               openServer -> createServer -> Exchangers.bind -> HeaderExchanger.bind ->
+               new HeaderExchangeServe -> Transporters.bind -> NettyTransporter.bind  ->
+               new NettyServer(url, listener) 发布了一个netty服务
+
+               getRegistry -> AbstractRegistryFactory.getRegistry -> ZookeeperRegistryFactory.createRegistry ->
+               new ZookeeperRegistry() -> ZkclientZookeeperTransporter.connect -> new ZkclientZookeeperClient() ->
+               client = new ZkClient(url.getBackupAddress()); 创建了一个zk客户端
+
+               ZookeeperRegistry父类是FailbackRegistry,所以 registry.register == FailbackRegistry.register
+               FailbackRegistry.register -> ZookeeperRegistry.doRegister -> AbstractZookeeperClient.create ->
+               ZkClient.createEphemeral 或 ZkClient.createPersistent 将URL创建到zookeeper上
+
+服务消费者
+DubboNamespaceHandler -> ReferenceBean.afterPropertiesSet -> getObject -> ReferenceConfig.get -> init ->
+createProxy ->  ref = proxy0对象
+         refprotocol.refer -> RegistryProtocol.refer ->
+               registryFactory.getRegistry -> AbstractRegistryFactory.getRegistry -> 同上 创建了一个zk客户端
+               doRefer ->
+                     registry.register 将consumer://192...注册到zookeeper
+
+                     directory.subscribe -> registry.subscribe -> FailbackRegistry.subscribe -> ZookeeperRegistry.doSubscribe ->
+                           FailbackRegistry.notify -> doNotify -> AbstractRegistry.notify -> listener.notify -> RegistryDirectory.notify ->
+                           refreshInvoker -> toInvokers -> new InvokerDelegete<T>(protocol.refer(serviceType, url), url, providerUrl) 将urls转成invokers ->
+                           ProtocolFilterWrapper.refer -> ProtocolListenerWrapper.refer -> DubboProtocol.refer ->
+                           new DubboInvoker<T>(serviceType, url, getClients(url), invokers) -> getClients -> initClient ->
+                           Exchangers.connect -> HeaderExchanger.connect ->
+                           new HeaderExchangeClient -> Transporters.connect -> NettyTransporter.connect ->
+                           new NettyClient(url, listener) 返回一个netty客户端连接
+
+                     cluster.join -> MockClusterWrapper.join -> new MockClusterInvoker
+
+               proxyFactory.getProxy -> ProxyFactory$Adpative.getProxy -> StubProxyFactoryWrapper.getProxy ->
+               JavassistProxyFactory.getProxy ->  Proxy.getProxy 返回proxy0对象，里面包装了MockClusterInvoker
+
+调用流程
+proxy0.sayHello -> InvokerInvocationHandler.invoke -> MockClusterInvoker.invoke -> 默认是FailoverClusterInvoker.invoke父类 ->
+AbstractClusterInvoker.invoke ->
+    list -> AbstractDirectory.list -> RegistryDirectory.doList 中 methodInvokerMap方法名映射Invoker列表,  refreshInvoker刷新列表
+    FailoverClusterInvoker.doInvoke ->
+        AbstractClusterInvoker.select -> doselect -> AbstractLoadBalance.select -> RandomLoadBalance.doSelect 返回一个invoke
+        DubboInvoker.invoke父类 -> AbstractInvoker.invoke -> DubboInvoker.doInvoke -> HeaderExchangeClient.request ->
+        HeaderExchangeChannel.request -> NettyClient.send父类 -> AbstractClient.send -> NettyChannel.send
+
+new NettyServer(url, listener) ->
+    ChannelHandlers.wrap -> ChannelHandlers.wrap -> wrapInternal -> new MultiMessageHandler(new HeartbeatHandler(
+    ExtensionLoader.getExtensionLoader(Dispatcher.class).getAdaptiveExtension().dispatch(handler, url)))
+
+    AbstractServer(URL url, ChannelHandler handler) -> NettyServer.doOpen ->
+    new NettyHandler(getUrl(), this) 和 pipeline.addLast("handler", nettyHandler)
+
+客户端 -> 服务端
+NettyChannel.send -> NettyHandler.messageReceived -> handler.received -> MultiMessageHandler.received ->
+HeartbeatHandler.received -> AllChannelHandler.received -> cexecutor.execute(new ChannelEventRunnable) ->
+ChannelEventRunnable.run -> DecodeHandler.received -> HeaderExchangeHandler.received -> handleRequest ->
+ExchangeHandlerAdapter.reply -> AbstractProxyInvoker.invoke -> doInvoke -> JavassistProxyFactory.getInvoker 中
+new AbstractProxyInvoker<T>(proxy, type, url).doInvoke -> IHelloService$Proxy.invokeMethod  调用结束

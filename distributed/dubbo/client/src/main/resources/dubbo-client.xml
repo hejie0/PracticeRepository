@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://code.alibabatech.com/schema/dubbo
+	http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <!-- consumer's application name, used for tracing dependency relationship (not a matching criterion),
+    don't set it same as provider -->
+    <dubbo:application name="dubbo-client"/>
+
+    <!-- use zookeeper registry center to discover service -->
+    <dubbo:registry id="zkCluster" protocol="zookeeper"
+                    address="192.168.50.144:2181, 192.168.50.144:2182, 192.168.50.144:2183"/>
+
+    <!-- generate proxy for the remote service, then demoService can be used in the same way as the
+    local regular interface -->
+    <dubbo:reference id="helloService" check="false" interface="demo.IHelloService"
+                     protocol="dubbo" registry="zkCluster" version="1.0.1" cluster="failover" mock="demo.TestMock" timeout="60"/>
+
+    <dubbo:reference id="userService" check="false" interface="demo.IUserService"
+                     protocol="hessian" registry="zkCluster" cluster="failover"/>
+
+</beans>
