@@ -3,9 +3,13 @@ package demo;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.*;
+import org.apache.curator.framework.recipes.leader.LeaderSelector;
+import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * CuratorFramework是基于原生zookeeper API封装的一个框架，方便使用
@@ -67,8 +71,15 @@ public class CuratorFrameworkDemo {
                 System.out.println("当前线程：" + Thread.currentThread().getName() + ",code:"
                         + event.getResultCode() + ",type:" + event.getType());
             }
-        }, Executors.newFixedThreadPool(10)).forPath(persistentPath);*/
+        }, Executors.newFixedThreadPool(10)).forPath(persistentPath);
 
+        事务操作（curator独有的）
+        CuratorTransactionResult.getType() getForPath() getResultPath() getResultStat()
+        创建节点persistentPath 并且 修改一个不存在的节点 /abc，commit会失败
+        Collection<CuratorTransactionResult> curatorTransactionResults = curatorFramework.inTransaction()
+                .create().forPath(persistentPath, "123".getBytes()).and()
+                .setData().forPath("/abc", "123".getBytes()).and().commit();
+        */
         //创建节点
         curatorFramework.create().creatingParentsIfNeeded()
                 .withMode(CreateMode.PERSISTENT)
@@ -91,7 +102,7 @@ public class CuratorFrameworkDemo {
     /**
      * PathChildrenCache 监听一个节点下子节点的create、delete、set
      * NodeCache    监听一个节点的create、set
-     * TreeCache    综合PathChildCache和NodeCache的特性
+     * TreeCache    综合PathChildCache和NodeCache的特性，还会缓存路径下所有子节点的数据
      */
     public static void addListenerWithPathChildCache(CuratorFramework curatorFramework, String path) throws Exception {
         PathChildrenCache pathChildrenCache = new PathChildrenCache(curatorFramework, path, false);
@@ -126,16 +137,37 @@ public class CuratorFrameworkDemo {
         treeCache.start();
     }
 
+    private static void leaderSelector(CuratorFramework curatorFramework, String masterPath) {
+        LeaderSelector leaderSelector = new LeaderSelector(curatorFramework, masterPath, new LeaderSelectorListenerAdapter() {
+            @Override
+            public void takeLeadership(CuratorFramework client) throws Exception {
+                System.out.println(client.getZookeeperClient().getZooKeeper().getSessionId() + ": 获得leader成功");
+                TimeUnit.SECONDS.sleep(2);
+            }
+        });
+        leaderSelector.autoRequeue();
+        leaderSelector.start();
+    }
+
+    private static void testLeaderSelector(String masterPath) throws InterruptedException {
+        initCuratorFramework();
+        leaderSelector(curatorFramework, masterPath);
+        initCuratorFramework();
+        leaderSelector(curatorFramework, masterPath);
+        initCuratorFramework();
+        leaderSelector(curatorFramework, masterPath);
+        TimeUnit.SECONDS.sleep(30);
+    }
+
     public static void main(String[] args) throws Exception {
         initCuratorFramework();
-
         //addListenerWithPathChildCache(curatorFramework, "/persistentNode"); //绑定PathChildCache监听事件
         //addListenerWithNodeCache(curatorFramework, "/persistentNode/node1"); //绑定NodeCache监听事件
         addListenerWithTreeCache(curatorFramework, "/persistentNode/node1"); //绑定TreeCache监听事件
-
         crudNode(curatorFramework);
-
         closeCuratorFramework();
+
+        testLeaderSelector("/curator_master_path");
     }
 
 }

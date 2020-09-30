@@ -1,6 +1,9 @@
 package rmi.server;
 
 
+import rmi.common.HelloServiceImpl;
+import rmi.common.IHelloService;
+
 import java.net.MalformedURLException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;

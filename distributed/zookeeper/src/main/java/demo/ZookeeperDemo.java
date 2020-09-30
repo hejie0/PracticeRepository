@@ -1,8 +1,12 @@
 package demo;
 
 import org.apache.zookeeper.*;
+import org.apache.zookeeper.data.ACL;
+import org.apache.zookeeper.data.Id;
 import org.apache.zookeeper.data.Stat;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -79,12 +83,28 @@ public class ZookeeperDemo {
 
             buildEvent(zooKeeper); //绑定事件
             crudNode(zooKeeper); //操作zookeeper
+            testAcl(zooKeeper); //测试zookeeper权限
 
             zooKeeper.close();
         }catch (Exception e){
             e.printStackTrace();
         }
 
+    }
+
+    private static void testAcl(ZooKeeper zooKeeper) throws KeeperException, InterruptedException {
+        //第一种
+        //zooKeeper.addAuthInfo("digest", "root:root".getBytes());
+
+        //第二种
+        List<ACL> aclList = new ArrayList<>();
+        ACL digestRoot = new ACL(ZooDefs.Perms.CREATE, new Id("digest", "root:root"));
+        ACL ip = new ACL(ZooDefs.Perms.CREATE, new Id("ip","192.168.1.1"));
+        aclList.add(digestRoot);
+        //aclList.add(ip);
+
+        zooKeeper.create(persistentPath, "123".getBytes(), aclList, CreateMode.PERSISTENT);
+        //zooKeeper.delete(persistentPath, -1);
     }
 
 }

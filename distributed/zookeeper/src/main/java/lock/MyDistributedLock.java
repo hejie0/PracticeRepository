@@ -13,6 +13,8 @@ import java.util.concurrent.locks.Lock;
 
 /**
  * 基于原生Zookeeper实现公平锁
+ * https://www.cnblogs.com/qlqwjy/p/10518900.html 锁
+ * https://www.iteye.com/blog/z63as-2432750 zk日志
  */
 public class MyDistributedLock implements Lock, Watcher {
 
@@ -87,7 +89,7 @@ public class MyDistributedLock implements Lock, Watcher {
 
     @Override
     public void process(WatchedEvent event) {
-        if (this.countDownLatch != null){
+        if (this.countDownLatch != null && event.getType() == Event.EventType.NodeDeleted){
             this.countDownLatch.countDown();
         }
     }
