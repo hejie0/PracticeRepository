@@ -1,4 +1,4 @@
-package com.future.srpingcloudconfigclient.event;
+package com.future.springcloudconfigclientdemo.event;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
