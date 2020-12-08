@@ -1,0 +1,98 @@
+org.apache.commons.configuration.Configuration
+    org.apache.commons.configuration.MapConfiguration
+        org.apache.commons.configuration.SystemConfiguration
+        org.apache.commons.configuration.EnvironmentConfiguration
+
+org.apache.commons.configuration.CompositeConfiguration
+org.apache.commons.configuration.CompositeConfiguration.addConfiguration(org.apache.commons.configuration.Configuration, boolean)
+private List<Configuration> configList = new LinkedList<Configuration>();
+
+
+org.springframework.core.env.PropertySource
+    org.springframework.core.env.MapPropertySource
+        org.springframework.core.env.PropertiesPropertySource
+        org.springframework.core.env.SystemEnvironmentPropertySource
+
+org.springframework.core.env.CompositePropertySource
+org.springframework.core.env.CompositePropertySource.addPropertySource
+private final Set<PropertySource<?>> propertySources = new LinkedHashSet<>();
+
+Environment   --->   PropertySources   MutablePropertySources.addFirst --->
+PropertySource ---> 命令行参数
+PropertySource ---> java system 属性
+PropertySource ---> application.properties
+PropertySource ---> 分布式配置服务器
+
+当应用配置标注了EnableConfigServer，导入ConfigServerConfiguration，注册Marker Bean作为ConfigServerAutoConfiguration条件之一
+@Import(ConfigServerConfiguration.class)
+org.springframework.cloud.config.server.EnableConfigServer
+
+org.springframework.cloud.config.server.config.ConfigServerConfiguration
+org.springframework.cloud.config.server.config.ConfigServerConfiguration.enableConfigServerMarker
+
+@ConditionalOnBean(ConfigServerConfiguration.Marker.class)
+@Import({ EnvironmentRepositoryConfiguration.class,
+org.springframework.cloud.config.server.config.ConfigServerAutoConfiguration
+
+@Import({ JdbcRepositoryConfiguration.class,
+org.springframework.cloud.config.server.config.EnvironmentRepositoryConfiguration
+
+@ConditionalOnClass(JdbcTemplate.class)
+@ConditionalOnProperty(value = "spring.cloud.config.server.jdbc.enabled",matchIfMissing = true)
+org.springframework.cloud.config.server.config.JdbcRepositoryConfiguration
+
+JdbcRepositoryConfiguration.jdbcEnvironmentRepository(JdbcEnvironmentRepositoryFactory factory, JdbcEnvironmentProperties environmentProperties)
+参数1：org.springframework.cloud.config.server.environment.JdbcEnvironmentRepositoryFactory
+参数2：org.springframework.cloud.config.server.environment.JdbcEnvironmentProperties
+org.springframework.cloud.config.server.environment.JdbcEnvironmentRepositoryFactory.build
+返回结果：org.springframework.cloud.config.server.environment.JdbcEnvironmentRepository
+
+org.springframework.cloud.config.server.environment.JdbcEnvironmentRepository.findOne(application, profile, label)
+
+JdbcTemplate Bean的来源
+@ConditionalOnClass({ DataSource.class, JdbcTemplate.class })
+@Import({ JdbcTemplateConfiguration.class, NamedParameterJdbcTemplateConfiguration.class })
+org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration
+org.springframework.boot.autoconfigure.jdbc.JdbcTemplateConfiguration.jdbcTemplate
+
+SQL的来源
+@ConfigurationProperties("spring.cloud.config.server.jdbc")
+JdbcEnvironmentProperties
+不配置，默认SQL是：JdbcEnvironmentProperties.DEFAULT_SQL
+配置表的数据： key:my.name，value:hejie，application:config，profile:default，label:master
+配置表的数据： key:my.name，value:hejie-dev，application:config，profile:dev，label:v1-hejie
+本质说明：
+    JDBC 连接技术
+    DB 存储介质
+    EnvironmentRepository 核心接口
+    JdbcEnvironmentRepository 子类
+
+思考是否可以自定义EnvironmentRepository实现？
+前提：如何激活自定义的EnvironmentRepository实现
+根据Git的JGitEnvironmentRepository实现找到：
+    @ConditionalOnMissingBean(value = EnvironmentRepository.class, search = SearchStrategy.CURRENT)
+    org.springframework.cloud.config.server.config.DefaultRepositoryConfiguration
+    找到了为什么默认是Git作为配置仓库的原因： MultipleJGitEnvironmentRepository
+    @ConditionalOnMissingBean：当Spring应用上下文没有出现EnvironmentRepository Bean的时候，那么，默认激活 DefaultRepositoryConfiguration
+
+HTTP请求模式
+org.springframework.cloud.config.server.environment.EnvironmentController
+
+@RequestMapping(path = "/{name}/{profiles}/{label:.*}", produces = MediaType.APPLICATION_JSON_VALUE
+EnvironmentController.labelled(application, profile, label)
+
+
+查找config客户端调用代码：
+搜索 spring.cloud.config.uri 找到 spring-configuration-metadata.json 文件
+"sourceType": "org.springframework.cloud.config.client.ConfigClientProperties"
+ConfigClientProperties类属性 private String[] uri = { "http://localhost:8888" };
+搜索 getUri() 找到 org.springframework.cloud.config.client.ConfigServicePropertySourceLocator
+ConfigServicePropertySourceLocator.getRemoteEnvironment中调用
+    response = restTemplate.exchange(uri + path, HttpMethod.GET, entity, Environment.class, args);
+    Environment result = response.getBody();
+
+搜索 getRemoteEnvironment 找到 ConfigServicePropertySourceLocator.locate中调用
+
+刷新配置,重新请求服务端配置
+org.springframework.cloud.context.refresh.ContextRefresher.refresh
+            ConfigServicePropertySourceLocator.locate

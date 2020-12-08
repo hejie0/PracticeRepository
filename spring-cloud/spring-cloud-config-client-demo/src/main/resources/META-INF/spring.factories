@@ -1,2 +1,3 @@
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-com.future.srpingcloudconfigclient.SrpingCloudConfigClientApplication.MyPropertySource
+com.future.springcloudconfigclientdemo.environment.CustomConfigServiceBootstrapConfiguration,\
+com.future.springcloudconfigclientdemo.SpringCloudConfigClientDemoApplication.MyPropertySource
