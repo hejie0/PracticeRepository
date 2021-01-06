@@ -1,0 +1,41 @@
+安装docker
+https://docs.docker.com/engine/install/centos/
+
+卸载旧版本
+$ sudo yum remove docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-engine
+
+安装yum-utils软件包（提供yum-config-manager 实用程序）并设置稳定的存储库。
+$ sudo yum install -y yum-utils
+$ sudo yum-config-manager \
+    --add-repo \
+    https://download.docker.com/linux/centos/docker-ce.repo
+
+1、安装DOCKER引擎
+$ sudo yum install docker-ce docker-ce-cli containerd.io
+
+2、要安装特定版本的Docker Engine，请在存储库中列出可用版本，然后选择并安装：
+$ yum list docker-ce --showduplicates | sort -r
+$ sudo yum install docker-ce-<VERSION_STRING> docker-ce-cli-<VERSION_STRING> containerd.io
+
+3、启动Docker
+$ sudo systemctl start docker
+
+4、配置docker镜像仓库为阿里云
+vim /etc/docker/daemon.json
+{"registry-mirrors": ["https://crdm9phe.mirror.aliyuncs.com"]}
+
+5、重启docker
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+6、通过运行hello-world 映像来验证是否正确安装了Docker Engine 。
+$ sudo docker run hello-world
+
+

@@ -1,0 +1,117 @@
+查看网卡信息
+ifconfig
+
+查看网络命令
+docker network --help
+
+指定网卡启动容器
+docker run --net 网卡名称
+
+创建网络(网卡)，类型为bridge，网卡名称为 my_net
+docker network create --driver bridge my_net
+
+删除网卡，删除my_net网卡
+docker network rm my_net
+
+容器添加网卡
+docker network connect 网卡名称 容器名称
+
+容器删除网卡
+docker network disconnect 网卡名称 容器名称
+
+删除所有未使用的网络
+docker network prune
+
+
+
+docker的默认网卡是 docker0，ip是 172.17.0.1，bridge network
+
+docker网络分类
+单机 bridge network, host network, none network
+多机 overlay network
+
+bridge network
+container01            container02
+ip:172.17.0.2          ip:172.17.0.3
+    |_______________________|
+             docker0
+             ip:172.17.0.1
+                |
+               NET
+                |
+               eth0
+                |
+              Internet(www.baidu.com)
+
+查看所有网络
+docker network ls
+网卡ID              网卡名称              网络类型
+NETWORK ID          NAME                  DRIVER              SCOPE
+c36177214db0        bridge                bridge              local
+129f3a8626bf        dockerfiles_default   bridge              local
+52180c3660f2        host                  host                local
+e1d393f1da6a        my_net                bridge              local
+220e1182e2c1        none                  null                local
+
+查看docker网络信息
+docker network inspect 网卡名称
+
+
+单机 容器之间相互通信，--link 容器名称，container02的/etc/hosts文件中添加container01地址
+docker run -itd --name container02 --link container01 image名称
+
+进入container02，ping container01，查看host文件中配置的container01 ip地址，查看环境信息
+docker exec -it container02 bash
+ping container01
+cat /etc/hosts
+env
+
+查看容器信息
+docker inspect 容器名称
+
+查看网络接口
+brctl show
+
+ip a的网卡名称                                                       ip a的网卡名称，正在运行的容器对应的网卡
+bridge name	        bridge id		            STP enabled	        interfaces
+br-129f3a8626bf		8000.0242074f3dc3	        no
+br-19898b377791		8000.02425ecc32bd	        no                  veth9d95105
+                                                                    vethfda2325
+br-ba3ccbfcc6e6		8000.024202b541c0	        no
+br-e1d393f1da6a		8000.02422ec553f4	        no
+docker0		        8000.02420d5f12cd	        no		            vethd0f2018
+
+查看网卡对应的容器网卡
+ip a
+
+4: docker0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+    link/ether 02:42:0d:5f:12:cd brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 scope global docker0
+       valid_lft forever preferred_lft forever
+143: br-19898b377791: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+    link/ether 02:42:5e:cc:32:bd brd ff:ff:ff:ff:ff:ff
+    inet 172.21.0.1/16 scope global br-19898b377791
+       valid_lft forever preferred_lft forever
+227: vethd0f2018@if226: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP group default
+    link/ether 16:9d:f8:d8:a4:1a brd ff:ff:ff:ff:ff:ff link-netnsid 0
+229: veth9d95105@if228: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master br-19898b377791 state UP group default
+    link/ether 1a:73:a2:b0:52:2b brd ff:ff:ff:ff:ff:ff link-netnsid 0
+231: vethfda2325@if230: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master br-19898b377791 state UP group default
+    link/ether 26:be:bd:1e:78:11 brd ff:ff:ff:ff:ff:ff link-netnsid 1
+
+查看容器的ip地址
+docker exec -it 容器名称 ifconfig
+
+查看网络链路，容器是怎么访问外网的
+docker inspect mysql-v1
+docker inspect tomcat-v1
+docker network ls
+docker network inspect 网络名称
+ip a
+iptables -t nat -nxvL
+
+
+
+
+
+

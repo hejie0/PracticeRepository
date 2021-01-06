@@ -1,0 +1,95 @@
+默认 TAG = latest
+image名称 == REPOSITORY:TAG|IMAGE ID
+容器名称 == NAMES|CONTAINER ID
+举一反三 run|start|stop|restart|rmi|rm|kill $(docker images -aq) $(docker ps -aq)
+
+run 根据image创建一个新容器并运行，-i 交互模式，-t 开启一个伪终端，-d后台运行，-p端口映射
+docker run -it image名称
+docker run -it image名称
+docker run -itd image名称
+docker run -itdp 7777:8080 image名称
+
+-it模式下 exit 退出会中断程序
+-it模式下 ctrl+p+q 退出不中断程序
+
+进入容器
+docker exec -it 容器名称 /bin/bash
+
+查看容器信息
+docker inspect 容器名称
+
+查看容器
+docker ps
+
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+291ad5a7bcfe        tomcat              "catalina.sh run"   10 minutes ago      Up 10 minutes       8080/tcp            happy_minsky
+
+显示所有的容器，包括未运行的
+docker ps -a
+显示最近创建的容器
+docker ps -l
+列出最近创建的n个容器
+docker ps -n 3
+显示容器id号
+docker ps -q
+
+--name 为新容器起一个名字
+docker run -it --name my-hello  image名称
+
+--net 指定该容器的网络类型
+docker run -it --net 网络类型[none|host|bridge|overlay] --name my-hello  image名称
+
+容器 启动|停止|重启
+docker start|stop|restart 容器名称
+
+强制停止容器
+docker kill 容器名称
+强制删除所有容器
+docker rm -f $(docker ps -aq)
+docker ps -aq | xargs docker rm
+
+
+制作镜像，     -a 作者，  -m 描述，        容器名称，REPOSITORY:TAG
+docker commit -a 'hejie' -m '修改webapps' mytomcat mytomcat:v1.0
+
+运行制作的镜像
+docker run -dp 8081:8080 --name mytomcat-1.0 mytomcat:v1.0
+
+将宿主机的文件拷贝到容器中
+touch /root/a.txt
+docker cp /root/a.txt 容器名称:/root/
+
+将容器中的文件拷贝到宿主机
+docker cp mytomcat:/root/a.txt /root/
+
+不支持容器之间的复制
+copying between containers is not supported
+
+
+image（镜像）== 文件系统
+tomcat
+jdk
+centos
+kernel
+
+container（容器）== 简易版的Linux环境（文件系统，用户空间，进程空间）
+
+运行一个centos7镜像，-v类似于mount命令，-v 宿主机目录:容器目录
+docker run -it --name mycentos7 -v /root/mydata:/root/mydata centos7 (image名称)
+
+运行一个centos7镜像，当前启动的容器<挂载> --volumes-from<容器>的 -v 目录，--volumes-from 容器名称
+docker run -it --name mycentos7-ref --volumes-from mycentos7 centos7 (image名称)
+
+当mycentos7容器挂掉，mycentos7-ref还能继续<挂载><宿主机>的/root/mydata目录。
+当mycentos7和mycentos7-ref挂掉，宿主机的/root/mydata目录不再被挂载
+
+
+
+
+
+
+
+
+
+
+

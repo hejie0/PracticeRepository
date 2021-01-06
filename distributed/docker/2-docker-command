@@ -1,0 +1,97 @@
+===============帮助类命令===================
+
+查看docker版本
+docker version
+
+查看内核
+uname -r
+
+查看docker信息
+docker info
+
+查看docker所有的命令
+docker --help
+
+
+===============本地镜像管理===================
+docker images
+
+仓库的名称               标签                镜像的id号          创建的时间           镜像的大小
+REPOSITORY              TAG                 IMAGE ID            CREATED             SIZE
+docker.io/hello-world   latest              bf756fb1ae65        11 months ago       13.3 kB
+
+默认 TAG = latest
+image名称 == REPOSITORY:TAG|IMAGE ID
+
+查看所有的镜像
+docker images -a
+只查看镜像的id
+docker images -q
+组合命令参数
+docker images -aq
+查看镜像摘要信息
+docker images --digests
+查看镜像完整信息
+docker images --no-trunc
+
+
+查找tomcat镜像
+docker search tomcat
+                                                                                                   使用数量   是否是官方的
+INDEX       NAME                                    DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
+docker.io   docker.io/tomcat                        Apache Tomcat is an open source implementa...   2901      [OK]
+
+查看STARS数大于30的
+docker search -s 30 tomcat
+
+下载镜像tomcat镜像
+docker pull tomcat
+docker pull docker.io/tomcat   #默认版本是 tag: latest
+
+删除镜像
+docker rmi image名称 image名称
+强制删除镜像
+docker rmi -f image名称
+强制删除所有镜像
+docker rmi -f $(docker images -aq)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

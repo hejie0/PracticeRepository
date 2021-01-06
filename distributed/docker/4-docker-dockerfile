@@ -1,0 +1,68 @@
+dockerfile是用来构建docker镜像的构建文件
+
+所有关键子大写
+from            基础镜像，当前镜像是基于哪个镜像的
+maintainer      镜像维护者的姓名和邮箱地址
+run             构建镜像时需要运行的命令
+workdir         容器创建后，默认在哪个目录
+expose          当前容器对外暴露的端口
+env             用来在构建镜像时，设置的环境变量
+add             将宿主机目录下的文件copy到镜像中，且add命令会自动解压压缩包
+copy            将宿主机目录下的文件copy到镜像中
+volume          容器数据卷，用于保存和持久化，类似于mount命令
+cmd             指定容器启动过程中需要执行的命令，多条cmd命令只有最后一条cmd命令生效，可以用&&拼接多条命令，cmd命令会被docker run之后的参数替换
+entrypoint      指定容器启动过程中需要执行的命令，entrypoint命令会把docker run命令的参数追加到后面
+onbuild
+
+
+
+dockerfile案例：
+准备文件
+docker pull docker.io/ansible/centos7-ansible
+mkdir -p /usr/local/docker
+echo "my.name=hejie" > /usr/local/docker/a.properties
+wget -O /usr/local/docker/apache-tomcat-9.0.41.tar.gz https://mirrors.tuna.tsinghua.edu.cn/apache/tomcat/tomcat-9/v9.0.41/bin/apache-tomcat-9.0.41.tar.gz
+wget -O /usr/local/docker/jdk-8u151-linux-x64.tar.gz https://repo.huaweicloud.com/java/jdk/8u151-b12/jdk-8u151-linux-x64.tar.gz
+
+
+vi /usr/local/docker/dockerfile
+
+FROM        docker.io/ansible/centos7-ansible
+MAINTAINER  hejie<2251646333@qq.com>
+
+RUN         yum -y install which \
+            && yum -y install vim \
+            && yum -y install wget \
+            && yum -y install net-tools \
+            && yum -y install wget \
+            && mkdir -p /usr/local/docker
+
+COPY        a.properties /usr/local/docker/
+
+ADD         apache-tomcat-9.0.41.tar.gz /usr/local/docker/
+ADD         jdk-8u151-linux-x64.tar.gz /usr/local/docker/
+
+ENV         MYPATH /usr/local/docker
+
+WORKDIR     $MYPATH
+
+ENV         JAVA_HOME /usr/local/docker/jdk1.8.0_151
+ENV         CLASSPATH $JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+ENV         CATALINA_HOME /usr/local/docker/apache-tomcat-9.0.41
+ENV         CATALINA_BASE /usr/local/docker/apache-tomcat-9.0.41
+ENV         PATH $PATH:$JAVA_HOME/bin:$CATALINA_HOME/lib:$CATALINA_HOME/bin
+
+EXPOSE      8080
+
+CMD         $CATALINA_HOME/bin/startup.sh && tail -f $CATALINA_HOME/logs/catalina.out
+
+根据dockerfile创建镜像，-f 指定dockerfile路径，-t 指定镜像名称，--no-cache=true默认false，docker build会将dockerfile中的命令缓存，如果命令与上一次相同则不会被执行
+docker build -f /usr/local/docker/dockerfile -t mytomcat:dockerfile .
+运行容器
+docker run -itp 8082:8080 --name mytomcat-dockerfile mytomcat:dockerfile
+
+查看镜像的层数
+docker history 镜像名称
+
+-f实时刷新日志，类似tail -f
+docker logs -f 容器名称

@@ -1,0 +1,122 @@
+使用docker compose管理多个容器
+下载docker-compose命令
+sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+给docker-compose添加执行权限
+sudo chmod +x /usr/local/bin/docker-compose
+
+创建软链
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+测试是否安装成功
+docker-compose --version
+
+
+docker-compose案例：
+准备文件
+docker pull mysql:5.7
+mkdir -p /usr/local/docker/mysql
+cp /usr/local/docker/dockerfile /usr/local/docker/mysql/dockerfile-tomcat
+echo "my.name=hejie" > /usr/local/docker/mysql/a.properties
+wget -O /usr/local/docker/mysql/apache-tomcat-9.0.41.tar.gz https://mirrors.tuna.tsinghua.edu.cn/apache/tomcat/tomcat-9/v9.0.41/bin/apache-tomcat-9.0.41.tar.gz
+wget -O /usr/local/docker/mysql/jdk-8u151-linux-x64.tar.gz https://repo.huaweicloud.com/java/jdk/8u151-b12/jdk-8u151-linux-x64.tar.gz
+
+
+创建检测mysql服务监听是否存在
+vi /usr/local/docker/mysql/mysql-check.sh
+
+#!/bin/bash
+netstat -anlp|grep 3306|grep LISTEN > /var/log/nul
+result=$?
+
+if [["$result" != "0"]]
+then
+   echo "mysql is unhealthy"
+   exit 1
+fi
+
+echo "mysql is healthy"
+exit 0
+
+
+创建mysql的dockerfile
+vi /usr/local/docker/dockerfile-mysql
+
+FROM        mysql:5.7
+ENV         MYPATH /usr/local/docker/mysql
+WORKDIR     $MYPATH
+COPY        mysql-check.sh .
+RUN         chmod 755 mysql-check.sh \
+            && apt-get update \
+            && apt-get -y install net-tools
+HEALTHCHECK --interval=10s --timeout=3s CMD bash mysql-check.sh
+
+
+创建docker-compose文件整合mysql和todo应用
+vi /usr/local/docker/docker-compose.yml
+
+version: "2.1"
+services:
+   tomcat:
+     build:
+       context: .
+       dockerfile: dockerfile-tomcat
+     image: tomcat:docker-compose-v1
+     ports:
+       - "8084:8080"
+     depends_on:
+       mysql:
+         condition: service_healthy
+     container_name: tomcat-v1
+     networks:
+       - my_net
+       - mynet
+
+   mysql:
+     environment:
+       MYSQL_ROOT_PASSWORD: password
+       MYSQL_DATABASE: test
+       MYSQL_USER: user
+       MYSQL_PASSWORD: pass
+     build:
+       context: .
+       dockerfile: dockerfile-mysql
+     image: mysql:docker-compose-v1
+     ports:
+       - "3306:3306"
+     container_name: mysql-v1
+     networks:
+       - my_net
+       - mynet
+
+networks:
+  my_net:
+    driver: bridge
+  mynet:
+    driver: bridge
+
+
+通过docker-compose启动docker-compose.yml所定义的docker应用
+up: 如果有相应image则不build，没有相应的image则build，然后根据应用的依赖关系优先创建哪些容器
+创建并启动所有容器
+docker-compose up -d
+启动|停止|重启
+docker-compose start|stop|restart
+查看所有启动的容器
+docker-compose ps
+查看运行容器的日志，-f 实时刷新，
+docker-compose logs 服务名称
+删除已经停止的容器
+docker-compose rm
+重新创建所有镜像，更新dockerfile一定要执行此命令
+docker-compose build
+
+#启动mysql
+docker run -itdp 3306:3306 --name mysql5.7 --restart always -e MYSQL_ROOT_PASSWORD="password" -e MYSQL_DATABASE="test" -e MYSQL_USER="user" -e MYSQL_PASSWORD="pass" mysql:5.7
+
+
+
+
+
+
+
