@@ -1,6 +1,14 @@
 package util;
 
+import me.xethh.utils.dateManipulation.BaseTimeZone;
+import me.xethh.utils.dateManipulation.DateBuilder;
+import me.xethh.utils.dateManipulation.DateFactory;
+
 import java.io.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class Utils {
 
@@ -40,4 +48,36 @@ public class Utils {
         return obj;
     }
 
+    public static void close(AutoCloseable... closeableList) {
+        if (closeableList == null || closeableList.length == 0) {
+            return;
+        }
+
+        for (AutoCloseable c : closeableList) {
+            try {
+                if (c != null) c.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * @param dateTime 20200313130536
+     * @return Calendar
+     * @throws ParseException
+     */
+    public static Calendar parseDateTime (String dateTime) throws ParseException {
+        System.out.println(dateTime);
+        String stringFormat = "";
+        if (dateTime.contains(".")) {
+            stringFormat = "yyyyMMddHHmmss.SSS";
+        } else {
+            stringFormat = "yyyyMMddHHmm";
+        }
+        Date time = new SimpleDateFormat(stringFormat).parse(dateTime);
+        DateBuilder builder = DateFactory.from(time);
+        builder.timeZone(BaseTimeZone.GMT);
+        return builder.asCalendar();
+    }
 }

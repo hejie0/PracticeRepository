@@ -4,6 +4,7 @@ version='1.0'
 allprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
+    apply plugin: 'application'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
@@ -30,6 +31,13 @@ allprojects {
 
     dependencies {
         testCompile group: 'junit', name: 'junit', version: '4.12'
+        compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+        compile group: 'ch.qos.logback', name: 'logback-core', version: '1.2.3'
+        compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+        compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
+        compile group: 'org.apache.commons', name: 'commons-pool2', version: '2.9.0'
+        compile group: 'commons-net', name: 'commons-net', version: '3.6'
+        compile group: 'me.xethh.utils', name: 'DateUtils', version: '6.0.0.RC1-RELEASE'
     }
 }
 
@@ -95,7 +103,9 @@ project(':netty') {
     dependencies {
         compile group: 'junit', name: 'junit', version: '4.12'
         compile group: 'io.netty', name: 'netty-all', version: '4.1.32.Final'
+        compile group: 'com.google.inject', name: 'guice', version: '4.2.0'
     }
+    mainClassName = 'nio.socket.TCPEchoServer'
 }
 
 project(':docker') {
