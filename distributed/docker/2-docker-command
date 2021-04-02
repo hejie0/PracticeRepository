@@ -54,6 +54,8 @@ docker rmi image名称 image名称
 docker rmi -f image名称
 强制删除所有镜像
 docker rmi -f $(docker images -aq)
+删除所有未运行的容器
+docker container prune
 
 
 
