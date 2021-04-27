@@ -5,7 +5,7 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MessageDirCreate extends netty.demo.filesync.xproto.Message {
+public class MessageDirCreate extends Message {
 
     private Logger log = LoggerFactory.getLogger(getClass());
     private String dirPath;
@@ -32,7 +32,7 @@ public class MessageDirCreate extends netty.demo.filesync.xproto.Message {
     }
 
     @Override
-    protected void encode(ByteBuf buf) {
+    public void encode(ByteBuf buf) {
         super.encode(buf);
         short dirPathLen = (short) dirPath.getBytes(CharsetUtil.UTF_8).length;
         if (log.isDebugEnabled()) {
@@ -50,7 +50,7 @@ public class MessageDirCreate extends netty.demo.filesync.xproto.Message {
     }
 
     @Override
-    protected void decode(ByteBuf buf) {
+    public void decode(ByteBuf buf) {
         super.decode(buf);
         short dirPathLen = buf.readShort();
         byte[] dirPathBytes = new byte[dirPathLen];

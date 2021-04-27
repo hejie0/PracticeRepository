@@ -107,6 +107,8 @@ public class Scanner implements Runnable {
 
                 }
             }
+        } catch (Exception e) {
+
         }
     }
 }
