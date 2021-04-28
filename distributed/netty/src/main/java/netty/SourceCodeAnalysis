@@ -1,0 +1,32 @@
+1、创建EventLoopGroup
+    1.1 默认cpu * 2 线程数 threadCount，假设threadCount = 16
+    1.2 创建DefaultThreadFactory     newThread(Runnable) FastThreadLocalThread
+    1.3 创建ThreadPerTaskExecutor将DefaultThreadFactory放入，execute == newThread.start()
+    1.4 创建EventExecutor[threadCount]数组用于存储NioEventLoop
+    1.5 创建NioEventLoop构造创建 MpscQueue，放入Executor，SelectorProvider
+    1.6 创建EventExecutorChooser，用于选择EventExecutor[threadCount]数组数据 next()，
+            threadCount能被2整除，则创建 PowerOfTwoEventExecutorChooser，next()采用位运算，遍历数组
+            0001     1
+            1111     15
+            0001     1
+
+            0010     2
+            1111     15
+            0010     2
+
+            10000    16
+            01111    15
+            00000    0
+
+            10001    17
+            01111    15
+            00001    1
+
+            threadCount不能被2整除，则创建 GenericEventExecutorChooser，next()采用取余算法，遍历数组
+            1 % 16 = 1
+            2 % 16 = 2
+            16 % 16 = 0
+            17 % 16 = 1
+
+2、ServerBootstrap.bind(port)
+    2.1
