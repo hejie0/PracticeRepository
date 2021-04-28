@@ -1,0 +1,37 @@
+JarLauncher启动流程
+org.springframework.boot.loader.JarLauncher#main
+org.springframework.boot.loader.ExecutableArchiveLauncher#ExecutableArchiveLauncher()
+    org.springframework.boot.loader.Launcher#createArchive
+
+
+org.springframework.boot.loader.Launcher#launch(java.lang.String[])
+
+org.springframework.boot.loader.jar.JarFile#registerUrlProtocolHandler
+
+org.springframework.boot.loader.Launcher#createClassLoader(java.util.List<org.springframework.boot.loader.archive.Archive>)
+    org.springframework.boot.loader.archive.Archive.getUrl
+    org.springframework.boot.loader.archive.JarFileArchive.getUrl
+        org.springframework.boot.loader.jar.JarFile.getUrl
+            Handler handler = new Handler(this);                创建spring扩展的Handler
+            this.url = new URL("jar", "", -1, file, handler);   spring的Handler覆盖默认的jar协议Handler
+            if (handler == null &&
+                        (handler = getURLStreamHandler(protocol)) == null) {
+                        throw new MalformedURLException("unknown protocol: " + protocol);
+                    }
+            sun.misc.Launcher.Factory.createURLStreamHandler    如果没有spring扩展的Handler，则创建默认{protocol}Handler
+
+    org.springframework.boot.loader.Launcher.createClassLoader(java.net.URL[])
+
+org.springframework.boot.loader.Launcher#getMainClass
+org.springframework.boot.loader.ExecutableArchiveLauncher.getMainClass
+    mainClass = manifest.getMainAttributes().getValue("Start-Class");
+
+org.springframework.boot.loader.Launcher#launch(java.lang.String[], java.lang.String, java.lang.ClassLoader)
+    createMainMethodRunner(mainClass, args, classLoader).run()
+    org.springframework.boot.loader.MainMethodRunner.run
+            Class<?> mainClass = Thread.currentThread().getContextClassLoader()
+    				.loadClass(this.mainClassName);
+    		Method mainMethod = mainClass.getDeclaredMethod("main", String[].class);
+    		mainMethod.invoke(null, new Object[] { this.args });
+
+

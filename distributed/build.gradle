@@ -112,3 +112,17 @@ project(':docker') {
 
 }
 
+project(':springboot') {
+    dependencies {
+        implementation group: 'org.springframework.boot', name: 'spring-boot-loader', version: '2.0.2.RELEASE'
+    }
+}
+
+project(':kafka') {
+    dependencies {
+        implementation group: 'org.apache.kafka', name: 'kafka-clients', version: '2.7.0'
+        implementation group: 'org.apache.kafka', name: 'kafka-streams', version: '2.7.0'
+
+    }
+}
+

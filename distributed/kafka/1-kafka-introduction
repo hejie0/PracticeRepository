@@ -1,0 +1,41 @@
+1.安装kafka
+http://kafka.apache.org/downloads
+
+2.解压
+tar -xzf kafka_*.tgz
+
+3.进入kafka目录
+cd kafka_*
+
+4.启动zookeeper，kafka依赖于zookeeper
+bin/zookeeper-server-start.sh config/zookeeper.properties 这是kafka自带的zookeeper环境
+
+[可选]修改kafka依赖的zookeeper地址
+vi config/server.properties
+zookeeper.connect=192.168.50.144:2181  自定义zookeeper环境
+
+5.启动kafka
+bin/kafka-server-start.sh -daemon config/server.properties
+
+6.创建topic
+bin/kafka-topics.sh --create --topic quickstart-events --bootstrap-server localhost:9092
+
+[可选]
+bin/kafka-topics.sh --create --topic quickstart-events1 --replication-factor 1 --partitions 1 --zookeeper 192.168.50.144:2181
+
+7.指定zookeeper查看所有的topic
+bin/kafka-topics.sh --list --zookeeper 192.168.50.144:2181
+
+8.指定topic查看内容
+bin/kafka-topics.sh --describe --topic quickstart-events --bootstrap-server localhost:9092
+
+9.指定topic生产消息
+bin/kafka-console-producer.sh --topic quickstart-events --bootstrap-server localhost:9092
+hello world
+
+[可选]
+bin/kafka-console-producer.sh --topic quickstart-events1 --broker-list localhost:9092
+
+10.指定topic消费消息
+bin/kafka-console-consumer.sh --topic quickstart-events --from-beginning --bootstrap-server localhost:9092
+

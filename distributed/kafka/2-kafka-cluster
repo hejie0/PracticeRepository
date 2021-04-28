@@ -1,0 +1,45 @@
+1.解压3次，将名称修改为kafka1、kafka2、kafka3
+tar -xzf kafka_*.tgz
+mv kafka_* kafka1
+
+tar -xzf kafka_*.tgz
+mv kafka_* kafka2
+
+tar -xzf kafka_*.tgz
+mv kafka_* kafka3
+
+2.修改kafka1、kafka3、kafka3的配置
+vi config/server.properties
+zookeeper.connect=192.168.50.144:2181  自定义zookeeper环境
+
+log.dirs=/tmp/kafka1-logs
+log.dirs=/tmp/kafka2-logs
+log.dirs=/tmp/kafka3-logs
+
+broker.id=1
+broker.id=2
+broker.id=3
+
+listeners=PLAINTEXT://192.168.50.144:9091
+listeners=PLAINTEXT://192.168.50.144:9092
+listeners=PLAINTEXT://192.168.50.144:9093
+
+修改kafka端口，kafka2、kafka3同理
+service.properties                             port=9091    不指定的话，按照默认9092
+connect-standalone.properties                  bootstrap.servers=192.168.50.144:9091
+connect-distributed.properties                 bootstrap.servers=192.168.50.144:9091
+producer.properties                            bootstrap.servers=192.168.50.144:9091
+consumer.properties                            bootstrap.servers=192.168.50.144:9091
+
+3.启动kafka1、kafka3、kafka3
+bin/kafka-server-start.sh -daemon config/server.properties
+
+4.查看kafka1、kafka2、kafka3是否注册
+[zk: 192.168.50.144:2181(CONNECTED) 2] ls /brokers/ids
+[1, 2, 3]
+
+5.查看master节点
+[zk: 192.168.50.144:2181(CONNECTED) 6] get /controller
+{"version":1,"brokerid":1,"timestamp":"1615388877279"}
+
+

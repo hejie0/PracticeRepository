@@ -15,4 +15,6 @@ findProject(':activemq:activemq-producer')?.name = 'activemq-producer'
 include 'activemq:activemq-receiver'
 findProject(':activemq:activemq-receiver')?.name = 'activemq-receiver'
 include 'docker'
+include 'springboot'
+include 'kafka'
 
