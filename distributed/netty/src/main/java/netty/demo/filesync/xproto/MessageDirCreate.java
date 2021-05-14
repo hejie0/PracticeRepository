@@ -12,7 +12,7 @@ public class MessageDirCreate extends Message {
     private String taskName;
 
     public MessageDirCreate(MessageType type) {
-        super(netty.demo.filesync.xproto.MessageType.DIR_CREATE);
+        super(MessageType.DIR_CREATE);
     }
 
     public String getDirPath() {

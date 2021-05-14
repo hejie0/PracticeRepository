@@ -5,7 +5,7 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MessageTransferStart extends netty.demo.filesync.xproto.MessageTransferSession {
+public class MessageTransferStart extends MessageTransferSession {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private long modifyTime;
     private long size;
@@ -13,7 +13,7 @@ public class MessageTransferStart extends netty.demo.filesync.xproto.MessageTran
     private String taskName;
 
     public MessageTransferStart(MessageType type) {
-        super(netty.demo.filesync.xproto.MessageType.TRANSFER_START);
+        super(MessageType.TRANSFER_START);
     }
 
     @Override

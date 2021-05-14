@@ -2,7 +2,7 @@ package netty.demo.filesync.xproto;
 
 import io.netty.buffer.ByteBuf;
 
-public class MessageTransferSession extends netty.demo.filesync.xproto.Message {
+public class MessageTransferSession extends Message {
 
     protected long sessionId;
 

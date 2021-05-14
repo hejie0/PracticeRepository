@@ -12,7 +12,7 @@ public class MessageTransferContent extends MessageTransferSession {
     private ByteBuf data;
 
     public MessageTransferContent(MessageType type) {
-        super(netty.demo.filesync.xproto.MessageType.TRANSFER_CONTENT);
+        super(MessageType.TRANSFER_CONTENT);
     }
 
     public long getSequence() {
