@@ -29,4 +29,19 @@
             17 % 16 = 1
 
 2、ServerBootstrap.bind(port)
-    2.1
+    2.1 initAndRegister
+        创建NioServerSocketChannel，构造创建javaChannel并设置为非阻塞，创建id，unsafe，pipeline
+        构造创建NioServerSocketChannelConfig，放入javaChannel和NioChannel，
+        config中构造创建AdaptiveRecvByteBufAllocator
+
+        init
+        为NioChannel设置options，attr，pipeline注册ServerBootstrapAcceptor，
+
+        register
+        EventLoopGroup.next() NioEventLoop，创建DefaultChannelPromise存入NioChannel和NioEventLoop
+        unsafe注册NioEventLoop和DefaultChannelPromise == promise.channel().unsafe().register(this, promise)
+
+        AbstractChannel.AbstractUnsafe.register -> AbstractChannel.AbstractUnsafe.register0
+        AbstractChannel.doRegister -> AbstractNioChannel.doRegister   javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
+
+

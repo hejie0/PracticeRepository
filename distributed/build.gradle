@@ -1,5 +1,5 @@
 group 'distributed'
-version='1.0'
+version = '1.0'
 
 allprojects {
     apply plugin: 'java'
@@ -13,18 +13,18 @@ allprojects {
         options.encoding = "UTF-8"
     }
 
-    task"create-dirs" << {
+    task "create-dirs" << {
         sourceSets*.java.srcDirs*.each {
             it.mkdirs()
         }
-        sourceSets*.resources.srcDirs*.each{
+        sourceSets*.resources.srcDirs*.each {
             it.mkdirs()
         }
     }
 
     repositories {
         //maven {url "http://maven.oschina.net/content/groups/public"}
-        maven {url "http://maven.aliyun.com/nexus/content/groups/public/"}
+        maven { url "http://maven.aliyun.com/nexus/content/groups/public/" }
         jcenter()
         //mavenCentral()
     }
@@ -49,9 +49,9 @@ project(':zookeeper') {
     }
 }
 
-project(':rmi'){
+project(':rmi') {
     dependencies {
-        compile project (':zookeeper')
+        compile project(':zookeeper')
     }
 }
 
@@ -73,7 +73,7 @@ project(':dubbo') {
     }
 
     project(':dubbo:client') {
-        dependencies{
+        dependencies {
             compile project(':dubbo:server-api')
             compile group: 'com.alibaba', name: 'dubbo', version: '2.5.3'
             compile group: 'com.101tec', name: 'zkclient', version: '0.11'
@@ -122,7 +122,8 @@ project(':kafka') {
     dependencies {
         implementation group: 'org.apache.kafka', name: 'kafka-clients', version: '2.7.0'
         implementation group: 'org.apache.kafka', name: 'kafka-streams', version: '2.7.0'
-
+        implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.7.0'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter', version: '2.4.5'
     }
 }
 
