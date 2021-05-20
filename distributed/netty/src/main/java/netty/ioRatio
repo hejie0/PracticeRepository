@@ -1,0 +1,44 @@
+if (ioRatio == 100) {
+    try {
+        processSelectedKeys();
+    } finally {
+        // Ensure we always run tasks.
+        runAllTasks();
+    }
+} else {
+    final long ioStartTime = System.nanoTime();
+    try {
+        processSelectedKeys();
+    } finally {
+        // Ensure we always run tasks.
+        final long ioTime = System.nanoTime() - ioStartTime;
+        runAllTasks(ioTime * (100 - ioRatio) / ioRatio);
+    }
+}
+
+timeout计算公式：(ioTime * (100 - ioRatio) / ioRatio)
+
+(默认ioRatio是50，1:1): 运行64个task的时间 >= 运行processSelectedKeys的时间 * 1，则继续循环selector.select
+1000   50
+50000  / 50
+1000
+
+(ioRatio=40，1:1.5)：运行64个task的时间 >= 运行processSelectedKeys的时间 * 1.5，则继续循环selector.select
+1000  60
+60000 / 40
+1500
+
+(ioRatio=20，1:4)：运行64个task的时间 >= 运行processSelectedKeys的时间 * 4，则继续循环selector.select
+1000  80
+80000 / 20
+4000
+
+(ioRatio=10，1:9)：运行64个task的时间 >= 运行processSelectedKeys的时间 * 9，则继续循环selector.select
+1000  90
+90000 / 10
+9000
+
+(ioRatio=5，1:19)：运行64个task的时间 >= 运行processSelectedKeys的时间 * 19，则继续循环selector.select
+1000  95
+95000 / 5
+19000
