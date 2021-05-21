@@ -3,8 +3,10 @@ package netty.tcp;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import netty.tcp.echohandler.EchoServerHandler;
 import netty.tcp.handler.InboundHandler1;
 import netty.tcp.handler.InboundHandler2;
 import netty.tcp.handler.OutboundHandler1;
@@ -48,6 +50,12 @@ public class EchoServer {
             ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap.group(boosGroup, workGroup)
                     .channel(NioServerSocketChannel.class)
+                    .handler(new ChannelInitializer<ServerSocketChannel>() {
+                        @Override
+                        protected void initChannel(ServerSocketChannel ch) throws Exception {
+                            ch.pipeline().addLast(new EchoServerHandler());
+                        }
+                    })
                     .option(ChannelOption.SO_BACKLOG, 1024)
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
                     .childOption(ChannelOption.SO_REUSEADDR, true)

@@ -68,7 +68,11 @@
 
         【执行taskMpsQ任务，如register0】
         执行taskMpsQ任务：AbstractChannel.AbstractUnsafe.register0
-        AbstractChannel.doRegister -> AbstractNioChannel.doRegister   javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
+            -> AbstractChannel.doRegister -> AbstractNioChannel.doRegister   javaChannel().register(eventLoop().unwrappedSelector(), 0, this);【注册完成】
+
+        pipeline.invokeHandlerAddedIfNeeded();  将Handler添加addLast到ChannelHandlerContext中，server端添加handler，client添加childHandler
+        pipeline.fireChannelRegistered();
+        pipeline.fireChannelActive();
 
     2.2 doBind0
         使用NioServerSocketChannel.eventLoop执行
