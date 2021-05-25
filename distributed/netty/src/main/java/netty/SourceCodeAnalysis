@@ -31,7 +31,7 @@
 
 2、ServerBootstrap.bind(port)
     2.1 【initAndRegister】
-        创建NioServerSocketChannel，构造创建javaChannel并设置为非阻塞，创建id，unsafe，pipeline
+        创建NioServerSocketChannel，构造创建javaChannel并设置为非阻塞，设置OP_ACCEPT，创建id，unsafe，pipeline
         构造创建NioServerSocketChannelConfig，放入javaChannel和NioChannel，
         config中构造创建AdaptiveRecvByteBufAllocator
 
@@ -53,7 +53,7 @@
             NioServerSocketChannel.unsafe.read() == NioMessageUnsafe.read()    【server数据读取核心方法，入口 pipeline.fireXXX】
                doReadMessages()接收一个（SocketChannel|client），创建NioSocketChannel并存入SocketChannel
                pipeline.fireChannelRead(readBuf.get(i)) == ServerBootstrapAcceptor.channelRead
-               childGroup.register(child)使用childGroup注册NioSocketChannel，注册完成后childGroup的eventLoop死循环selector.select
+               childGroup.register(child)使用childGroup注册NioSocketChannel，设置OP_READ，注册完成后childGroup的eventLoop死循环selector.select
 
             NioSocketChannel.unsafe.read() == NioByteUnsafe.read()             【client数据读取核心方法，入口 pipeline.fireXXX】
                pipeline.fireChannelRead(byteBuf) -> DefaultChannelPipeline.fireChannelRead
@@ -75,6 +75,16 @@
         pipeline.fireChannelActive();
 
     2.2 doBind0
-        使用NioServerSocketChannel.eventLoop执行
+        使用NioServerSocketChannel.eventLoop执行channel.bind -> DefaultChannelPipeline.HeadContext.bind
+        -> AbstractChannel.AbstractUnsafe.bind -> NioServerSocketChannel.doBind() 最终执行javaChannel().bind(localAddress, config.getBacklog()); backlog:1024
+
+        bind后执行pipeline事件
+        pipeline.fireChannelActive -> DefaultChannelPipeline.HeadContext.channelActive
+
+        并给javaChannel注册read事件
+        DefaultChannelPipeline.HeadContext.readIfIsAutoRead -> AbstractChannel.read -> DefaultChannelPipeline.HeadContext.read
+        AbstractChannel.AbstractUnsafe.beginRead -> AbstractNioMessageChannel.doBeginRead
+        -> AbstractNioChannel.doBeginRead 最终执行selectionKey.interestOps() OP_ACCEPT|OP_READ
+
 
 
