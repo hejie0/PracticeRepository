@@ -23,6 +23,7 @@ public abstract class Task implements Serializable {
     protected AtomicInteger sendingFileCount = new AtomicInteger(0);
     protected IFileSystem fileSystem;
     protected ScheduledFuture<?> future;
+    protected volatile boolean bigFilePullWorking = true;
 
     public int getId() {
         return id;
@@ -144,6 +145,14 @@ public abstract class Task implements Serializable {
         this.future = future;
     }
 
+    public boolean isBigFilePullWorking() {
+        return bigFilePullWorking;
+    }
+
+    public void setBigFilePullWorking(boolean bigFilePullWorking) {
+        this.bigFilePullWorking = bigFilePullWorking;
+    }
+
     public abstract void start() throws Exception;
 
     public abstract void stop() throws Exception;
@@ -166,6 +175,7 @@ public abstract class Task implements Serializable {
                 ", sendingFileCount=" + sendingFileCount +
                 ", fileSystem=" + fileSystem +
                 ", future=" + future +
+                ", bigFilePullWorking=" + bigFilePullWorking +
                 '}';
     }
 }

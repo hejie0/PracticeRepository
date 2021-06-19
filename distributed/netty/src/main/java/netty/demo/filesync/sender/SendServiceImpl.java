@@ -7,6 +7,11 @@ import netty.demo.filesync.scanner.FileInfo;
 public class SendServiceImpl implements ISendService {
 
     @Override
+    public void init() throws Exception {
+
+    }
+
+    @Override
     public void send(FileInfo fileInfo) {
 
     }

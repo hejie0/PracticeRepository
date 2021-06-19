@@ -22,6 +22,11 @@ public class ScanServiceImpl implements IScanService {
     private IThreadPoolService threadPoolService;
 
     @Override
+    public void init() throws Exception {
+
+    }
+
+    @Override
     public void scan(Task task) {
         Scanner scanner = new Scanner();
         scanner.setTask(task)

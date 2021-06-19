@@ -11,6 +11,10 @@ public class FileInfo {
     private long beginTime;
     private long size;
 
+    private long segmentId;
+    private long sessionId;
+    private boolean isCache;
+
     public Task getTask() {
         return task;
     }
@@ -57,5 +61,29 @@ public class FileInfo {
 
     public void setSize(long size) {
         this.size = size;
+    }
+
+    public long getSegmentId() {
+        return segmentId;
+    }
+
+    public void setSegmentId(long segmentId) {
+        this.segmentId = segmentId;
+    }
+
+    public long getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(long sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public boolean isCache() {
+        return isCache;
+    }
+
+    public void setCache(boolean cache) {
+        isCache = cache;
     }
 }

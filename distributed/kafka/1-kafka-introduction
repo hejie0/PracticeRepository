@@ -39,3 +39,6 @@ bin/kafka-console-producer.sh --topic quickstart-events1 --broker-list localhost
 10.指定topic消费消息
 bin/kafka-console-consumer.sh --topic quickstart-events --from-beginning --bootstrap-server localhost:9092
 
+查看topic的offset
+bin/kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list localhost:9092 --topic test
+

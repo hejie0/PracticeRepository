@@ -22,6 +22,11 @@ public class TaskServiceImpl implements ITaskService {
     private IScanService scanService;
 
     @Override
+    public void init() throws Exception {
+
+    }
+
+    @Override
     public void addTask(Task task) throws Exception {
         try {
             lock.lock();
@@ -47,7 +52,7 @@ public class TaskServiceImpl implements ITaskService {
                 });
 
                 String result = future.get(50, TimeUnit.SECONDS);
-                log.info("add to start task result:{}",result);
+                log.info("add to start task result:{}", result);
             } catch (Exception e) {
                 task.setEnabled(false);
                 throw e;
@@ -57,7 +62,7 @@ public class TaskServiceImpl implements ITaskService {
 
             scanService.scan(task);
             taskMap.put(task.getName(), task);
-            log.info("scanner start successfully, this task name: [{}]",task.getName());
+            log.info("scanner start successfully, this task name: [{}]", task.getName());
         } finally {
             lock.unlock();
         }
@@ -85,7 +90,7 @@ public class TaskServiceImpl implements ITaskService {
                 });
 
                 String result = future.get(50, TimeUnit.SECONDS);
-                log.info("stop or delete result:{}",result);
+                log.info("stop or delete result:{}", result);
             } catch (Exception e) {
                 log.info("this task [task name: {}] stop failed! error{}", taskName, Throwables.getStackTraceAsString(e));
                 task.setEnabled(true);
