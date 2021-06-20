@@ -24,6 +24,7 @@ public abstract class Task implements Serializable {
     protected IFileSystem fileSystem;
     protected ScheduledFuture<?> future;
     protected volatile boolean bigFilePullWorking = true;
+    protected boolean bigFileLocal;
 
     public int getId() {
         return id;
@@ -153,6 +154,14 @@ public abstract class Task implements Serializable {
         this.bigFilePullWorking = bigFilePullWorking;
     }
 
+    public boolean isBigFileLocal() {
+        return bigFileLocal;
+    }
+
+    public void setBigFileLocal(boolean bigFileLocal) {
+        this.bigFileLocal = bigFileLocal;
+    }
+
     public abstract void start() throws Exception;
 
     public abstract void stop() throws Exception;
@@ -176,6 +185,7 @@ public abstract class Task implements Serializable {
                 ", fileSystem=" + fileSystem +
                 ", future=" + future +
                 ", bigFilePullWorking=" + bigFilePullWorking +
+                ", bigFileLocal=" + bigFileLocal +
                 '}';
     }
 }
