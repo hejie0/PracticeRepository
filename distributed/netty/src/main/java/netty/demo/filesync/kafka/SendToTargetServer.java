@@ -95,7 +95,7 @@ public class SendToTargetServer implements Runnable {
                 FailedCaused caused = null;
                 try {
                     if ((task.isBigFileLocal() && fileInfo.getSegmentId() == 1) || fileInfo.isCache()) {
-                        fileObject = getOutputStream(fs, fileInfo);
+//                        fileObject = getOutputStream(fs, fileInfo);
                     } else {
                         if (this.fileInfo.getSegmentId() >= fileInfo.getSegmentId()) {
                             log.info("consumer message repeated and ignore, file segment: [{}].[{}], last: [{}], current: [{}]", fileInfo.getFilePath(), fileInfo.getSegmentId(), this.fileInfo.getSegmentId(), fileInfo.getSegmentId());
@@ -112,11 +112,11 @@ public class SendToTargetServer implements Runnable {
                         break;
                     }
                     if (fileInfo.isCaughtException()) {
-                        log.info("the file [{}].[{}] caught exception, message is [{}].", fileInfo.getFilePath(), fileInfo.getSegmentId(), fileInfo.getExcpetionMsg());
+//                        log.info("the file [{}].[{}] caught exception, message is [{}].", fileInfo.getFilePath(), fileInfo.getSegmentId(), fileInfo.getExcpetionMsg());
                         break;
                     }
                     OutputStream out = fileObject.getOut();
-                } catch () {
+                } catch (Exception e) {
 
                 }
             }
