@@ -17,6 +17,7 @@ public class FileInfo {
 
     private long segmentId;
     private long sessionId;
+    private boolean endSegment;
 
     public Task getTask() {
         return task;
@@ -111,5 +112,13 @@ public class FileInfo {
 
     public void setCaughtException(boolean caughtException) {
         this.caughtException = caughtException;
+    }
+
+    public boolean isEndSegment() {
+        return endSegment;
+    }
+
+    public void setEndSegment(boolean endSegment) {
+        this.endSegment = endSegment;
     }
 }

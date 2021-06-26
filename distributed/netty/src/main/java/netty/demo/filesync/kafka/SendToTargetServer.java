@@ -95,7 +95,7 @@ public class SendToTargetServer implements Runnable {
                 FailedCaused caused = null;
                 try {
                     if ((task.isBigFileLocal() && fileInfo.getSegmentId() == 1) || fileInfo.isCache()) {
-//                        fileObject = getOutputStream(fs, fileInfo);
+                        fileObject = getOutputStream(fs, fileInfo);
                     } else {
                         if (this.fileInfo.getSegmentId() >= fileInfo.getSegmentId()) {
                             log.info("consumer message repeated and ignore, file segment: [{}].[{}], last: [{}], current: [{}]", fileInfo.getFilePath(), fileInfo.getSegmentId(), this.fileInfo.getSegmentId(), fileInfo.getSegmentId());
@@ -112,16 +112,47 @@ public class SendToTargetServer implements Runnable {
                         break;
                     }
                     if (fileInfo.isCaughtException()) {
-//                        log.info("the file [{}].[{}] caught exception, message is [{}].", fileInfo.getFilePath(), fileInfo.getSegmentId(), fileInfo.getExcpetionMsg());
+                        log.info("the file [{}].[{}] caught exception, message is [{}].", fileInfo.getFilePath(), fileInfo.getSegmentId(), fileInfo.getExcpetionMsg());
                         break;
                     }
                     OutputStream out = fileObject.getOut();
+                    out.write(bytes);
+                    if (task.isBigFileLocal() && !fileInfo.isEndSegment()) {
+                        continue;
+                    }
+                    try{
+                        out.flush();
+                    } catch (NullPointerException npe) {
+                        caused = FailedCaused.DIR_CANNOT_WRITE;
+                        throw npe;
+                    }
+                    endTransfer = true;
+                    log.info("[{}] from kafka mq has transfered finished, sessionId: {}, task: {}", getFileName(fileInfo.getTmpFileUrl()), fileInfo.getSessionId(), task.getName());
+                    recordAudit(fileInfo, Audit.AuditResult.SUCCESS, null);
+                    if (endTransfer) {
+                        break;
+                    }
                 } catch (Exception e) {
-
+                    recordAudit(fileInfo, Audit.AuditResult.FAILED, caused);
+                    this.fileInfo.setCaughtException(true);
+                    log.error("task [{}] file [{}] transfer from kafka to file server error: {}", task.getName(), getFileName(fileInfo.getTmpFileUrl()), ThrowableUtil.stackTraceToString(e));
+                    break;
+                } finally {
+                    if (task.isBigFileLocal() && !fileInfo.isEndSegment() && !fileInfo.isCanceled() && fileInfo.isCaughtException()) {
+                        this.fileInfo = fileInfo;
+                    }
                 }
             }
         } catch (Exception e) {
-
+            log.error("file [{}] error: {}", null == fileInfo ? fileInfo.getFilePath() : "fileInfo is null" , ThrowableUtil.stackTraceToString(e));
+        } finally {
+            segmentQ.clear();
+            pullData.removeSendToServer(fileInfo.getSessionId());
+            if (fileObject == null){
+                asFileObjectNull(fileInfo);
+            }
+            endSegment(fileInfo);
+            modFileOwner(fileInfo);
         }
     }
 
